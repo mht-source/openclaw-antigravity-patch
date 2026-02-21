@@ -19,7 +19,7 @@ Tested on **OpenClaw 2026.2.19-2** / Arch Linux.
 ## Quick start
 
 ```bash
-git clone https://github.com/yourname/openclaw-antigravity-patch
+git clone https://github.com/mht-source/openclaw-antigravity-patch
 cd openclaw-antigravity-patch
 bash patch.sh
 ```
