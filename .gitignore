@@ -1,0 +1,5 @@
+# Never commit these
+auth-profiles.json
+auth.json
+*.token
+*.bak
