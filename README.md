@@ -71,4 +71,4 @@ PLATFORM="darwin/arm64"
 
 ## See also
 
-Full technical writeup: [PATCH.md](PATCH.md)
+Full technical writeup: [OPENCLAW_ANTIGRAVITY_PATCH.md](OPENCLAW_ANTIGRAVITY_PATCH.md)
