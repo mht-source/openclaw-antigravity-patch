@@ -285,6 +285,9 @@ path = "$OPENCLAW_JSON"
 with open(path) as f:
     config = json.load(f)
 
+import re as _re, glob as _glob
+
+# Always add google-antigravity models
 models_to_add = [
     "google-antigravity/gemini-3.1-pro-high",
     "google-antigravity/gemini-3.1-pro-low",
@@ -298,6 +301,24 @@ models_to_add = [
     "google-antigravity/claude-sonnet-4-6",
     "google-antigravity/gpt-oss-120b-medium",
 ]
+
+# Dynamically add models for other configured providers
+candidates = (
+    _glob.glob(os.path.expanduser("~/apps/openclaw/node_modules/.pnpm/@mariozechner+pi-ai*/node_modules/@mariozechner/pi-ai/dist/models.generated.js")) +
+    _glob.glob(os.path.expanduser("~/.npm-global/lib/node_modules/openclaw/node_modules/@mariozechner/pi-ai/dist/models.generated.js"))
+)
+if candidates:
+    with open(candidates[0]) as mf:
+        mcontent = mf.read()
+    auth_profiles = config.get("auth", {}).get("profiles", {})
+    auth_providers = set(v.get("provider") for v in auth_profiles.values())
+    auth_providers.discard("google-antigravity")
+    matches = _re.findall(r'id:\s*"([^"]+)",\s*\n\s*name:[^,]+,\s*\n\s*api:[^,]+,\s*\n\s*provider:\s*"([^"]+)"', mcontent)
+    for model_id, provider in matches:
+        if provider in auth_providers:
+            key = f"{provider}/{model_id}"
+            if key not in models_to_add:
+                models_to_add.append(key)
 
 existing = config.get("agents", {}).get("defaults", {}).get("models", {})
 added = 0
