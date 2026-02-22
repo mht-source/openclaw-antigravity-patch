@@ -285,7 +285,7 @@ path = "$OPENCLAW_JSON"
 with open(path) as f:
     config = json.load(f)
 
-import re as _re, glob as _glob
+import re as _re, glob as _glob, os
 
 # Always add google-antigravity models
 models_to_add = [
