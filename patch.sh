@@ -22,7 +22,7 @@ else
 fi
 
 # Detect pi-ai location — pnpm uses flat .pnpm structure with version hashes
-PI_AI_DIR=$(find "$OPENCLAW_DIR/node_modules" -maxdepth 4 -name "google-gemini-cli.js" -path "*/providers/*" 2>/dev/null | head -1 | sed 's|/dist/providers/google-gemini-cli.js||')
+PI_AI_DIR=$(find "$OPENCLAW_DIR/node_modules" -name "google-gemini-cli.js" -path "*/providers/*" 2>/dev/null | head -1 | sed 's|/dist/providers/google-gemini-cli.js||')
 if [[ -z "$PI_AI_DIR" ]]; then
     echo -e "\033[0;31m[✗]\033[0m Cannot find @mariozechner/pi-ai in $OPENCLAW_DIR"
     exit 1
