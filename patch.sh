@@ -9,7 +9,14 @@
 
 set -euo pipefail
 
-OPENCLAW_DIR="$(npm root -g)/openclaw"
+if command -v pnpm &>/dev/null && pnpm root -g &>/dev/null 2>&1; then
+    OPENCLAW_DIR="$(pnpm root -g)/openclaw"
+elif command -v npm &>/dev/null; then
+    OPENCLAW_DIR="$(npm root -g)/openclaw"
+else
+    echo -e "\033[0;31m[✗]\033[0m Neither npm nor pnpm found"
+    exit 1
+fi
 PI_AI_DIR="$OPENCLAW_DIR/node_modules/@mariozechner/pi-ai"
 DIST="$OPENCLAW_DIR/dist"
 ANTIGRAVITY_VERSION="1.18.3"
@@ -357,7 +364,7 @@ fi
 # Find all relevant dist files dynamically (hash in filename changes per version)
 PI_EMBEDDED_FILES=$(find "$DIST" -maxdepth 1 -name "pi-embedded-*.js" ! -name "pi-embedded-helpers-*" ! -name "*.bak")
 REPLY_FILES=$(find "$DIST" -maxdepth 1 -name "reply-*.js" ! -name "reply-prefix-*" ! -name "*.bak")
-PLUGIN_REPLY=$(find "$DIST/plugin-sdk" -maxdepth 1 -name "reply-*.js" ! -name "*.bak" 2>/dev/null || true)
+PLUGIN_REPLY=$(find "$DIST/plugin-sdk" -maxdepth 1 -name "reply-*.js" ! -name "reply-prefix-*" ! -name "*.bak" 2>/dev/null || true)
 SUBAGENT=$(find "$DIST" -maxdepth 1 -name "subagent-registry-*.js" ! -name "*.bak")
 
 ALL_DIST_FILES="$PI_EMBEDDED_FILES $REPLY_FILES $PLUGIN_REPLY $SUBAGENT"
