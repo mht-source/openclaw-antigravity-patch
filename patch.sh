@@ -9,15 +9,24 @@
 
 set -euo pipefail
 
-if command -v pnpm &>/dev/null && pnpm root -g &>/dev/null 2>&1; then
+# Detect OpenClaw installation directory
+if [[ -d "$HOME/apps/openclaw" ]]; then
+    OPENCLAW_DIR="$HOME/apps/openclaw"
+elif command -v pnpm &>/dev/null && pnpm root -g &>/dev/null 2>&1; then
     OPENCLAW_DIR="$(pnpm root -g)/openclaw"
 elif command -v npm &>/dev/null; then
     OPENCLAW_DIR="$(npm root -g)/openclaw"
 else
-    echo -e "\033[0;31m[✗]\033[0m Neither npm nor pnpm found"
+    echo -e "\033[0;31m[✗]\033[0m Cannot find OpenClaw installation"
     exit 1
 fi
-PI_AI_DIR="$OPENCLAW_DIR/node_modules/@mariozechner/pi-ai"
+
+# Detect pi-ai location — pnpm uses flat .pnpm structure with version hashes
+PI_AI_DIR=$(find "$OPENCLAW_DIR/node_modules" -maxdepth 4 -name "google-gemini-cli.js" -path "*/providers/*" 2>/dev/null | head -1 | sed 's|/dist/providers/google-gemini-cli.js||')
+if [[ -z "$PI_AI_DIR" ]]; then
+    echo -e "\033[0;31m[✗]\033[0m Cannot find @mariozechner/pi-ai in $OPENCLAW_DIR"
+    exit 1
+fi
 DIST="$OPENCLAW_DIR/dist"
 ANTIGRAVITY_VERSION="1.18.3"
 PLATFORM="linux/amd64"  # change to darwin/arm64 on macOS
