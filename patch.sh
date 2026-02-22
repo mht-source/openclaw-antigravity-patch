@@ -111,13 +111,9 @@ else
         log "[DRY RUN] Would add new models to models.generated.js"
     else
         cp "$MODELS_JS" "$MODELS_JS.prepatch.bak"
-        python3 << 'PYEOF'
-import re, sys
-
-path = sys.argv[1] if len(sys.argv) > 1 else None
+        MODELS_JS="$MODELS_JS" python3 << 'PYEOF'
 import os
-# find models.generated.js path from env
-path = os.environ.get('MODELS_JS')
+path = os.environ['MODELS_JS']
 
 with open(path, 'r') as f:
     content = f.read()
@@ -240,128 +236,6 @@ content = content.replace('daily-cloudcode-pa.sandbox.googleapis.com', 'daily-cl
 with open(path, 'w') as f:
     f.write(content)
 
-print("models.generated.js patched successfully")
-PYEOF
-        MODELS_JS="$MODELS_JS" python3 << 'PYEOF'
-import os
-path = os.environ['MODELS_JS']
-with open(path, 'r') as f:
-    content = f.read()
-new_models = '''        "gemini-3.1-pro-high": {
-            id: "gemini-3.1-pro-high",
-            name: "Gemini 3.1 Pro High (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "gemini-3.1-pro-low": {
-            id: "gemini-3.1-pro-low",
-            name: "Gemini 3.1 Pro Low (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "gemini-2.5-pro": {
-            id: "gemini-2.5-pro",
-            name: "Gemini 2.5 Pro (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "gemini-2.5-flash": {
-            id: "gemini-2.5-flash",
-            name: "Gemini 2.5 Flash (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 0.5, output: 3, cacheRead: 0.5, cacheWrite: 0 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "gemini-2.5-flash-lite": {
-            id: "gemini-2.5-flash-lite",
-            name: "Gemini 2.5 Flash Lite (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: false,
-            input: ["text", "image"],
-            cost: { input: 0.1, output: 0.5, cacheRead: 0.1, cacheWrite: 0 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "gemini-2.5-flash-thinking": {
-            id: "gemini-2.5-flash-thinking",
-            name: "Gemini 2.5 Flash Thinking (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 0.5, output: 3, cacheRead: 0.5, cacheWrite: 0 },
-            contextWindow: 1000000,
-            maxTokens: 65535,
-        },
-        "claude-opus-4-6-thinking": {
-            id: "claude-opus-4-6-thinking",
-            name: "Claude Opus 4.6 Thinking (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
-            contextWindow: 200000,
-            maxTokens: 64000,
-        },
-        "claude-sonnet-4-6": {
-            id: "claude-sonnet-4-6",
-            name: "Claude Sonnet 4.6 (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: false,
-            input: ["text", "image"],
-            cost: { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 },
-            contextWindow: 200000,
-            maxTokens: 64000,
-        },
-        "gpt-oss-120b-medium": {
-            id: "gpt-oss-120b-medium",
-            name: "GPT-OSS 120B Medium (Antigravity)",
-            api: "google-gemini-cli",
-            provider: "google-antigravity",
-            baseUrl: "https://daily-cloudcode-pa.googleapis.com",
-            reasoning: true,
-            input: ["text", "image"],
-            cost: { input: 2, output: 8, cacheRead: 0.2, cacheWrite: 0 },
-            contextWindow: 114000,
-            maxTokens: 32768,
-        },
-'''
-content = content.replace('"google-antigravity": {\n', '"google-antigravity": {\n' + new_models, 1)
-content = content.replace('daily-cloudcode-pa.sandbox.googleapis.com', 'daily-cloudcode-pa.googleapis.com')
-with open(path, 'w') as f:
-    f.write(content)
-print("OK")
-PYEOF
         log "models.generated.js — added new models + fixed sandbox endpoint"
     fi
 fi
