@@ -236,6 +236,8 @@ content = content.replace('daily-cloudcode-pa.sandbox.googleapis.com', 'daily-cl
 with open(path, 'w') as f:
     f.write(content)
 
+print("OK")
+PYEOF
         log "models.generated.js — added new models + fixed sandbox endpoint"
     fi
 fi
