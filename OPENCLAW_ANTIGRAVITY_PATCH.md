@@ -48,7 +48,49 @@ Retrieved via `/v1internal:fetchAvailableModels`:
 
 ---
 
+## OpenClaw Architecture — How Models Load
+
+Zrozumienie pipeline'u modeli wyjaśnia dlaczego patch działa tak a nie inaczej:
+
+```
+1. Auth → auth-profiles.json
+   OAuth token, API key — wszystko ląduje w
+   ~/.openclaw/agents/main/agent/auth-profiles.json
+
+2. Gateway → ensureOpenClawModelsJson()
+   Przy starcie gateway:
+   - Czyta openclaw.json (ręczne wpisy)
+   - Wykrywa zainstalowane auth i dopisuje implicit providers
+   - Merguje i zapisuje do models.json w katalogu agenta
+
+3. ModelRegistry (pi-ai)
+   Pi-ai łączy:
+   - models.generated.js (baked-in przy buildzie — STAŁY)
+   - models.json (custom modele użytkownika)
+   - Forward-compat shims
+
+4. Dostępność = auth, nie dynamiczne API
+   Model jest dostępny jeśli OpenClaw znajdzie auth dla jego providera.
+   OpenClaw NIE pyta API o listę modeli (wyjątki: Ollama, vLLM, Bedrock).
+```
+
+**Kluczowy wniosek:** Nowe modele Antigravity (gemini-3.1-pro-high itp.) nie były widoczne bo `models.generated.js` jest kompilowany razem z kodem OpenClaw (wersja 0.54.0) i zawierał tylko starsze modele. Jedynym sposobem ich dodania jest ręczna edycja tego pliku — co robi `patch.sh`.
+
+---
+
 ## Files Modified
+
+### 5. `openclaw/dist/auth-choice-*.js` (bug fix)
+
+**What:** Auth configuration flow for token-based providers.
+
+**Problem:** OpenClaw has a bug where adding an Anthropic API key does not automatically add models to the allowlist. The `applyAuthChoiceAnthropic()` function called `applyAgentDefaultModelPrimary()` (sets primary model) but never called `ensureModelAllowlistEntry()` (adds to allowlist). This is inconsistent with how OpenAI auth works.
+
+**Fix:** Added `ensureModelAllowlistEntry({ cfg: nextConfig, modelRef: DEFAULT_ANTHROPIC_MODEL })` call after `applyAgentDefaultModelPrimary` in both `setup-token` and `apiKey` branches.
+
+**Why:** Without this fix, after adding an Anthropic key the model is set as primary but blocked by the allowlist check — it never appears in the model picker.
+
+---
 
 ### 1. `openclaw/node_modules/@mariozechner/pi-ai/dist/providers/google-gemini-cli.js`
 
@@ -178,18 +220,23 @@ Created manually (OpenClaw does not auto-generate this file). Used to register m
 ```
 openclaw.json (primary model)
     ↓
-model-selection-ynGV0Z-S.js :: resolveAllowedModelRef()
+model-selection-*.js :: resolveAllowedModelRef()
     ↓ checks agents.defaults.models allowlist
     ↓ throws "model not allowed" if missing
     ↓
-pi-model-discovery-DaNAekda.js :: ModelRegistry
-    ↓ loads from @mariozechner/pi-coding-agent ModelRegistry
-    ↓ reads models.generated.js (built-ins) + models.json (custom)
-    ↓ throws "Unknown model" if not in registry
+ensureOpenClawModelsJson() [on startup]
+    ↓ reads openclaw.json + detects auth profiles
+    ↓ writes merged models.json to agent dir
     ↓
-pi-embedded-CHb5giY2.js :: normalizeToolParameters()
+pi-model-discovery-*.js :: ModelRegistry
+    ↓ loads models.generated.js (built-ins, STATIC)
+    ↓ loads models.json (custom overrides)
+    ↓ throws "Unknown model" if not in either
+    ↓
+pi-embedded-*.js :: normalizeToolParameters()
     ↓ isGeminiProvider = provider includes "google"
-    ↓ isAnthropicProvider = provider includes "anthropic" (PATCHED: removed google-antigravity)
+    ↓ isAnthropicProvider = provider includes "anthropic"
+    ↓   (PATCHED: removed google-antigravity from this check)
     ↓ cleanSchemaForGemini() called for Gemini models
     ↓
 @mariozechner/pi-ai :: google-gemini-cli provider
