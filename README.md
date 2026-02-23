@@ -15,6 +15,7 @@ Tested on **OpenClaw 2026.2.19-2** / Arch Linux.
 | Missing models | `Error: Unknown model: google-antigravity/gemini-3.1-pro-high` | Added to `models.generated.js` |
 | Broken tool schema | `400: Unknown name "patternProperties"` | Fixed `isAnthropicProvider` logic |
 | Model not in allowlist | `model not allowed: google-antigravity/...` | Added models to `openclaw.json` |
+| Anthropic models missing after setup | Models don't appear after adding API key | Fixed `auth-choice` to call `ensureModelAllowlistEntry` |
 
 ## Quick start
 
@@ -61,6 +62,12 @@ After patching, all of these work via `google-antigravity`:
 - `claude-sonnet-4-6`
 - `gpt-oss-120b-medium` (OpenAI on Google Vertex)
 
+## Allowlist — automatic model detection
+
+`patch.sh` automatically adds models to the allowlist for all configured providers. It reads `models.generated.js` and cross-references with your `auth.profiles` in `openclaw.json` — only models whose provider you have auth for are added.
+
+This means if you have Anthropic API key configured, all Anthropic models will be added automatically. Same for OpenAI, etc.
+
 ## Platform
 
 Default platform string is `linux/amd64`. Edit `patch.sh` line 13 for macOS:
@@ -71,4 +78,4 @@ PLATFORM="darwin/arm64"
 
 ## See also
 
-Full technical writeup: [OPENCLAW_ANTIGRAVITY_PATCH.md](OPENCLAW_ANTIGRAVITY_PATCH.md)
+Full technical writeup: [PATCH.md](PATCH.md)
